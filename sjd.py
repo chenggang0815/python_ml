@@ -19,7 +19,7 @@ soup = bs(res3,'lxml')'''
 #print(soup.body.a)
 
 base_url = 'https://tieba.baidu.com/f?kw=%E6%89%8B%E6%9C%BA%E8%B4%B7&ie=utf-8'
-deep =1
+deep =2
 url_list = []
 # 将所有需要爬去的url存入列表
 for i in range(0, deep):
@@ -49,41 +49,86 @@ author = [] # 作者
 time=[] #发帖时间
 reply_num=[]#帖子回复数
 tiezi_url =[]#帖子ID
+
 for s in soup:
-    print('title-----------------------------------')
     a =s.find_all('a',class_='j_th_tit ')
     for i in a:
         title.append(i.string)
 
-
-
-    print('author-------------------------------')
     b = s.find_all('span', title=re.compile('(主题作者.*)'))
     for i in b:
         author.append(i.get_text())
 
 
-    print('time---------------------------------')
     c = s.find_all('span',class_='pull-right is_show_create_time')
     for i in c:
         time.append(i.get_text())
 
-    print('reply_num---------------------------------')
+
     d= s.find_all('span',class_='threadlist_rep_num center_text')
     for i in d:
         reply_num.append(i.get_text())
 
-    print('title_id----------------------------------')
     e = s.find_all('a', class_='j_th_tit ')
     for i in e:
         tiezi_url.append('https://tieba.baidu.com'+i.get('href'))
 
-#    for  i in tiezi_url:
-#        print(i)
+    #第一楼
+    f=s.find_all('div')
+
 
 print('开始爬取帖子内容')
 # 爬取每个帖子里的回复
+#===========================================================
+all_comment=[] #记录一个帖子内的所有回复
+def get_page_num(url):
+    res = requests.get(url,headers=head).text
+    soup = bs(res,'lxml')
+    s=soup.find_all('li',class_='l_reply_num')[2].get_text()
+    a=re.findall('共(.*)页',s)
+    page_num=int(a[0])
+    return  page_num
 
+def get_all_comment(url):
+    url_list = []; res = [];soup = [];comment = []
+    for i in range(1, get_page_num(url)+1):
+        url_list.append(url + '?&pn=' + str(i))
+    for i in url_list:
+        res.append(requests.get(i,headers=head).text)
+        print(i)
+    for i in res:
+        soup.append(bs(i,'lxml'))
+    for s in soup:
+        comment.append(s.find_all('div',class_='d_post_content j_d_post_content '))
+    for i in comment:
+        for j in range(len(i)):
+            all_comment.append(i[j].get_text())
+
+
+for url in tiezi_url:
+    print(url)
+    get_all_comment(url)
+
+print(len(all_comment))
+
+for i in all_comment:
+    print(i)
+
+
+
+
+
+
+
+
+
+l=[title,author,time,reply_num,tiezi_url]
+for i in l:
+    print(len(i))
+
+
+
+'''
 soup2=[]
 res4=[]
 for url in tiezi_url:
@@ -93,20 +138,27 @@ for url in tiezi_url:
 
 
 
+
 for i in res4:
     soup2.append(bs(i,'lxml'))
     #print('添加帖子soup')
 
 title2=[]
+comment=[]
+item = 0
 for s in soup2:
 #帖子标题
-    title2.append(s.find_all('h3'))
-    print(s.find_all('h3')[0]['title'])
-    print(type(s.find_all('h3')))
-    #print(s.html)
+    title2.append(s.find_all('h3')[0]['title'])
+    comment.append(s.find_all('div',class_='d_post_content j_d_post_content '))
 
-for i in title2:
-    print(re.findall('">(.*)</h3>',i))
+for i in comment:
+    print(i)
+
+   # for i in range(10):
+#     print( s.find_all('div',class_='d_post_content j_d_post_content ')[i].get_text())
+
+
+
 
 print('Done!')
 
@@ -118,11 +170,7 @@ print('Done!')
 #print(len(reply_num))
 #print(len(tiezi_url))
 '''
-with open('shoujidai.csv','a') as f:
-    for y in range(150):
-        sjd_data = '%s; %s; %s; %s' % (title[y],author[y],time[y],reply_num[y])
-        f.writelines(sjd_data + '\n')
-        print('loading...')'''
+
 
 
 
