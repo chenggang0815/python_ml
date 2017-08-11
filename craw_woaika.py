@@ -70,9 +70,14 @@ def Open_Link(url,maxTryNum):
             content = html.xpath('//tr/td[@class="t_f"]')
             author = html.xpath('//div/a[@class="xw1"]')
             create_time= html.xpath('//em/span[@title]//@title')
+            if len(create_time) == 0:
+                tem_create_time = html.xpath('//em[@id]')
+                for i in tem_create_time:
+                    create_time.append(i.text)
             delete = html.xpath('//div[@class="locked"]/em')
             len_detele=len(delete)
-            print('共有多少条回复被删除:%d' % len_detele)
+            if tries >0:
+                print("尝试次数：%d" % (tries+1))
             if len(title) == 0 or len(content) == 0 or len(author) == 0 or len(create_time) == 0:
                 continue
             else:
@@ -111,7 +116,7 @@ n=1
 for i in reply_url_list:
     print(i)
     print("共有%d条url，已经解析%d条" %(len(reply_url_list),n))
-    Open_Link(i,15)
+    Open_Link(i,5)
     n = n +1
 
 
@@ -133,8 +138,6 @@ endtime = datetime.datetime.now()
 interval = (endtime - starttime).seconds
 print('共消耗时间：',interval,'秒')
 print('Done!')
-
-
 
 
 
