@@ -12,6 +12,11 @@ from lxml import etree
 
 starttime = datetime.datetime.now()
 base_url='http://bbs.51credit.com/forum-216-1.html'
+base_url_list=[]
+num_page=250
+for i in range(20,num_page):
+    base_url_list.append('http://bbs.51credit.com/forum-216-'+str(i)+'.html')
+
 
 head = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:51.0) Gecko/20100101 Firefox/51.0'}
 
@@ -25,7 +30,7 @@ def Get_list_url(base_url, maxTryMum):
         if len(get_url)==0:
             continue
         else:
-            print("解析%d次，成功" % tries)
+            print("解析%d次，成功" % (tries+1))
             for i in get_url:
                 url_id.append(str(i)[0:15])
                 url_list.append('http://bbs.51credit.com/'+i)
@@ -59,7 +64,7 @@ create_time_list =[]
 
 
 def Open_Link(url,maxTryNum):
-    title=[];content=[];author=[];create_time=[];delete=[];len_detele=0
+    title=[];content=[];author=[];delete=[];len_detele=0;create_time=[]
     print('正在解析url：%s' % url)
     for tries in range(maxTryNum):
         try:
@@ -69,11 +74,22 @@ def Open_Link(url,maxTryNum):
             title = html.xpath('//meta[@name="keywords"]//@content')
             content = html.xpath('//tr/td[@class="t_f"]')
             author = html.xpath('//div/a[@class="xw1"]')
-            create_time= html.xpath('//em/span[@title]//@title')
-            if len(create_time) == 0:
-                tem_create_time = html.xpath('//em[@id]')
+
+            tem_create_time = html.xpath('//em[@id]')
+            tem_create_time2 = html.xpath('//em/span[@title]//@title')
+            if len(tem_create_time2) == len(tem_create_time):
+                for i in tem_create_time2:
+                    create_time.append(i)
+            else:
+                n = 0
                 for i in tem_create_time:
                     create_time.append(i.text)
+                    n = n + 1
+                    if n == len(tem_create_time) - len(tem_create_time2):
+                        break
+                for i in tem_create_time2:
+                    create_time.append(i)
+
             delete = html.xpath('//div[@class="locked"]/em')
             len_detele=len(delete)
             if tries >0:
@@ -81,7 +97,7 @@ def Open_Link(url,maxTryNum):
             if len(title) == 0 or len(content) == 0 or len(author) == 0 or len(create_time) == 0:
                 continue
             else:
-                print("解析了%d次,成功" % tries)
+                print("解析了%d次,成功" % (tries+1))
                 break
         except:
             if tries < (maxTryNum - 1):
@@ -101,16 +117,16 @@ def Open_Link(url,maxTryNum):
     for i in range(len(author)-len_detele):
         author_list.append(author[i].text)
 
-
-Get_list_url(base_url,15)
+for i in base_url_list:
+    Get_list_url(i,15)
+# Get_list_url(base_url,15)
 print("开始解析回复页！")
 for i in range(len(url_list)):
     Get_reply_url(url_list[i], url_id[i])
     print(i)
 
 
-print("解析完成")
-print(len(reply_url_list))
+
 
 n=1
 for i in reply_url_list:
@@ -118,6 +134,10 @@ for i in reply_url_list:
     print("共有%d条url，已经解析%d条" %(len(reply_url_list),n))
     Open_Link(i,5)
     n = n +1
+
+
+
+
 
 
 
@@ -138,6 +158,21 @@ endtime = datetime.datetime.now()
 interval = (endtime - starttime).seconds
 print('共消耗时间：',interval,'秒')
 print('Done!')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
