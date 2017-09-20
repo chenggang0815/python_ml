@@ -53,7 +53,7 @@ train_step = tf.train.GradientDescentOptimizer(1e-3).minimize(cross_entropy)    
 correct_prediction = tf.equal(tf.argmax(y_predict,1), tf.argmax(y_actual,1))    
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))                 #精确度计算
 sess=tf.InteractiveSession()                          
-sess.run(tf.initialize_all_variables())
+sess.run(tf.global_variables_initializer())
 for i in range(20000):
   batch = mnist.train.next_batch(50)
   if i%100 == 0:                  #训练100次，验证一次
