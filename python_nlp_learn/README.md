@@ -2,4 +2,5 @@
 
 * fasttext
 * textcnn
+* textrnn
 * ...
