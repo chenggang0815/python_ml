@@ -14,18 +14,20 @@ starttime = datetime.datetime.now()
 head = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:51.0) Gecko/20100101 Firefox/51.0'}
 
 base_url = 'https://tieba.baidu.com/f?kw=%E6%89%8B%E6%9C%BA%E8%B4%B7&ie=utf-8'
-all_page =40
+all_page =2
 url_list = []
 # 将所有需要爬去的url存入列表
 for i in range(0, all_page):
     url_list.append(base_url + '&pn=' + str(50 * i))
     print('第',i+1,'页url已经拼接完成!')
+    print(url_list)
 
 
 res=[];res2=[];res3=[];i1=0
 for url in url_list:
     i1=i1+1
     res.append(requests.get(url,headers=head))
+    print(res)
     time.sleep(0.5)
     print('开始对第',i1,'页发起请求')
 

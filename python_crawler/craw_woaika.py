@@ -9,66 +9,72 @@ import datetime
 import time
 from lxml import etree
 
-
 starttime = datetime.datetime.now()
-base_url='http://bbs.51credit.com/forum-216-1.html'
-base_url_list=[]
-num_page=250
-for i in range(20,num_page):
-    base_url_list.append('http://bbs.51credit.com/forum-216-'+str(i)+'.html')
-
+base_url = 'http://bbs.51credit.com/forum-216-1.html'
+base_url_list = []
+num_page = 2
+for i in range(0, num_page):
+    base_url_list.append('http://bbs.51credit.com/forum-216-' + str(i) + '.html')
+    print(base_url_list)
 
 head = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:51.0) Gecko/20100101 Firefox/51.0'}
 
-url_list = [];url_id=[]
+url_list = [];
+url_id = []
+
+
 def Get_list_url(base_url, maxTryMum):
-    for tries in range(1,maxTryMum):
-        res=requests.get(base_url,headers=head,timeout=100).text
+    for tries in range(1, maxTryMum):
+        res = requests.get(base_url, headers=head, timeout=100).text
         time.sleep(0.2)
-        html=etree.HTML(res)
-        get_url=html.xpath('//a[@class="s xst"]//@href')
-        if len(get_url)==0:
+        html = etree.HTML(res)
+        get_url = html.xpath('//a[@class="s xst"]//@href')
+        if len(get_url) == 0:
             continue
         else:
-            print("解析%d次，成功" % (tries+1))
+            print("解析%d次，成功" % (tries + 1))
             for i in get_url:
                 url_id.append(str(i)[0:15])
-                url_list.append('http://bbs.51credit.com/'+i)
+                url_list.append('http://bbs.51credit.com/' + i)
             break
     return url_list
 
 
+reply_url_list = []
 
-reply_url_list=[]
-def Get_reply_url(url,url_id):
+
+def Get_reply_url(url, url_id):
     res = requests.get(url, headers=head, timeout=100).text
     time.sleep(0.2)
     html = etree.HTML(res)
     num_page = html.xpath('//div[@class="pg"]//span[@title]//@title')
     if len(num_page) == 0:
-        reply_url_list.append('http://bbs.51credit.com/'+ url_id + "1" + '-1.html')
+        reply_url_list.append('http://bbs.51credit.com/' + url_id + "1" + '-1.html')
     else:
         fin_num_page = int(re.findall('共 (\d*) 页', num_page[0])[0])
-        for i in range(1,fin_num_page+1):
-            reply_url_list.append('http://bbs.51credit.com/'+ url_id + str(i) + '-1.html')
-                #print('http://bbs.51credit.com/'+ url_id + str(i) + '-1.html')
-    return  reply_url_list
+        for i in range(1, fin_num_page + 1):
+            reply_url_list.append('http://bbs.51credit.com/' + url_id + str(i) + '-1.html')
+            # print('http://bbs.51credit.com/'+ url_id + str(i) + '-1.html')
+    return reply_url_list
 
 
+title_list = []
+content_list = []
+author_list = []
+create_time_list = []
 
 
-title_list=[]
-content_list=[]
-author_list=[]
-create_time_list =[]
-
-
-def Open_Link(url,maxTryNum):
-    title=[];content=[];author=[];delete=[];len_detele=0;create_time=[]
+def Open_Link(url, maxTryNum):
+    title = []
+    content = []
+    author = []
+    delete = []
+    len_delete = 0
+    create_time = []
     print('正在解析url：%s' % url)
     for tries in range(maxTryNum):
         try:
-            res =requests.get(url, headers=head,timeout=100).text
+            res = requests.get(url, headers=head, timeout=100).text
             time.sleep(0.2)
             html = etree.HTML(res)
             title = html.xpath('//meta[@name="keywords"]//@content')
@@ -91,13 +97,13 @@ def Open_Link(url,maxTryNum):
                     create_time.append(i)
 
             delete = html.xpath('//div[@class="locked"]/em')
-            len_detele=len(delete)
-            if tries >0:
-                print("尝试次数：%d" % (tries+1))
+            len_delete = len(delete)
+            if tries > 0:
+                print("尝试次数：%d" % (tries + 1))
             if len(title) == 0 or len(content) == 0 or len(author) == 0 or len(create_time) == 0:
                 continue
             else:
-                print("解析了%d次,成功" % (tries+1))
+                print("解析了%d次,成功" % (tries + 1))
                 break
         except:
             if tries < (maxTryNum - 1):
@@ -109,44 +115,33 @@ def Open_Link(url,maxTryNum):
     if len(title) == 0 or len(content) == 0 or len(author) == 0 or len(create_time) == 0:
         print('这个网页死活解析不出来！！')
 
-    for i in range(len(create_time)-len_detele):
+    for i in range(len(create_time) - len_delete):
         create_time_list.append(create_time[i])
     for i in content:
         content_list.append(i.text)
         title_list.append(title[0])
-    for i in range(len(author)-len_detele):
+    for i in range(len(author) - len_delete):
         author_list.append(author[i].text)
 
+
 for i in base_url_list:
-    Get_list_url(i,15)
+    Get_list_url(i, 15)
 # Get_list_url(base_url,15)
 print("开始解析回复页！")
 for i in range(len(url_list)):
     Get_reply_url(url_list[i], url_id[i])
     print(i)
 
-
-
-
-n=1
+n = 1
 for i in reply_url_list:
     print(i)
-    print("共有%d条url，已经解析%d条" %(len(reply_url_list),n))
-    Open_Link(i,5)
-    n = n +1
+    print("共有%d条url，已经解析%d条" % (len(reply_url_list), n))
+    Open_Link(i, 5)
+    n = n + 1
 
-
-
-
-
-
-
-
-
-
-data=pd.DataFrame([title_list,content_list,create_time_list,author_list])
-data=data.T
-data.columns=['title','content','time','author']
+data = pd.DataFrame([title_list, content_list, create_time_list, author_list])
+data = data.T
+data.columns = ['title', 'content', 'time', 'author']
 data.to_excel('我爱卡论坛帖子回复.xlsx')
 
 print(len(content_list))
@@ -156,27 +151,8 @@ print(len(title_list))
 
 endtime = datetime.datetime.now()
 interval = (endtime - starttime).seconds
-print('共消耗时间：',interval,'秒')
+print('共消耗时间：', interval, '秒')
 print('Done!')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 '''
 for i in range(100):
