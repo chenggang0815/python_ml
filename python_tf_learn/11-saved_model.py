@@ -1,3 +1,4 @@
+# coding=utf-8
 import tensorflow as tf
 import numpy as np
 import time
@@ -39,23 +40,11 @@ with tf.Session() as sess:
     # 构建 signature
     signature = tf.saved_model.build_signature_def(
         # 获取输入输出的信息（shape,dtype等），在部署服务后请求带来的数据会喂到inputs中，服务吐的结果会以outputs的形式返回
-        inputs={"input": tf.saved_model.utils.build_tensor_info(xx)},  # 获取输入tensor的信息，这个字典可以有多个key-value对
-        outputs={"output": tf.saved_model.utils.build_tensor_info(y_predict)},  # 获取输出tensor的信息，这个字典可以有多个key-value对
+        inputs={"input": tf.saved_model.build_tensor_info(xx)},  # 获取输入tensor的信息，这个字典可以有多个key-value对
+        outputs={"output": tf.saved_model.build_tensor_info(y_predict)},  # 获取输出tensor的信息，这个字典可以有多个key-value对
         method_name=tf.saved_model.signature_constants.PREDICT_METHOD_NAME  # 就是'tensorflow/serving/predict'
     )
     builder.add_meta_graph_and_variables(sess, ['test'], signature_def_map={"serving_default": signature})
     builder.save()
     print('after training, variable is %s,%s' % (sess.run(Weights), sess.run(bias)))
     
-"""
-saved_model_dir = "./saved_model/1607274900"
-
-with tf.Session() as sess:
-    # tf.saved_model.tag_constants.SERVING == "serve"，这里load时的tags需要和保存时的tags一致
-    meta_graph_def = tf.saved_model.loader.load(sess, tags=["test"], export_dir=saved_model_dir)
-    signature = meta_graph_def.signature_def
-    print(signature)  # signature 内包含了保存模型时，signature_def_map 的信息
-
-    check_input = sess.graph.get_tensor_by_name("Weights:0")
-    print(sess.run(check_input))
-"""
